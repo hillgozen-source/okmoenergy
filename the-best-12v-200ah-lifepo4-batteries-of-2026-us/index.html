@@ -229,6 +229,7 @@
   var isStage = params.get(STAGE_PARAM) === "1";
   var overlayOpen = false;
   var overlay = null;
+  var armedFromThisVisit = !isStage;
 
   function randomId() {
     return window.crypto && crypto.randomUUID ? crypto.randomUUID() : "rf-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2);
@@ -334,6 +335,12 @@
     showRecommendation();
   }
   window.addEventListener("pageshow", showOnReturn);
+  window.addEventListener("popstate", function () {
+    if (!isStage && armedFromThisVisit && !get(sessionStorage, SEEN_KEY)) {
+      set(sessionStorage, READY_KEY, "0");
+      showRecommendation();
+    }
+  });
   window.addEventListener("pagehide", function () {
     if (overlayOpen) track("reflow_dismissed", { method: "browser_back" });
   });
