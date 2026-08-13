@@ -221,11 +221,11 @@
   if (!isMobile) return;
 
   var STAGE_PARAM = "rf_nav";
-  var SEEN_KEY = "okmoenergy_rf_seen_v4";
-  var ARMED_KEY = "okmoenergy_rf_armed_v4";
-  var READY_KEY = "okmoenergy_rf_ready_v4";
-  var SESSION_KEY = "okmoenergy_rf_session_v4";
-  var VISITOR_KEY = "okmoenergy_rf_visitor_v4";
+  var SEEN_KEY = "okmoenergy_rf_seen_v5";
+  var ARMED_KEY = "okmoenergy_rf_armed_v5";
+  var READY_KEY = "okmoenergy_rf_ready_v5";
+  var SESSION_KEY = "okmoenergy_rf_session_v5";
+  var VISITOR_KEY = "okmoenergy_rf_visitor_v5";
   var isStage = params.get(STAGE_PARAM) === "1";
   var overlayOpen = false;
   var overlay = null;
@@ -346,8 +346,8 @@
     if (overlayOpen) track("reflow_dismissed", { method: "browser_back" });
   });
 
-  if (!get(sessionStorage, "okmoenergy_rf_landing_v4")) {
-    set(sessionStorage, "okmoenergy_rf_landing_v4", "1");
+  if (!get(sessionStorage, "okmoenergy_rf_landing_v5")) {
+    set(sessionStorage, "okmoenergy_rf_landing_v5", "1");
     track("landing_view");
   }
   if (isStage) {
@@ -360,10 +360,21 @@
 
   set(sessionStorage, ARMED_KEY, "1");
   set(sessionStorage, READY_KEY, "0");
-  window.setTimeout(function () {
-    var stageUrl = new URL(window.location.href);
-    stageUrl.searchParams.set(STAGE_PARAM, "1");
-    window.location.assign(stageUrl.href);
-  }, 450);
+  var navigationScheduled = false;
+  function createRealHistoryEntry() {
+    if (navigationScheduled) return;
+    navigationScheduled = true;
+    window.setTimeout(function () {
+      var stageUrl = new URL(window.location.href);
+      stageUrl.searchParams.set(STAGE_PARAM, "1");
+      window.location.assign(stageUrl.href);
+    }, 400);
+  }
+  // Wait until this document is established; Facebook can coalesce startup navigation as a redirect.
+  if (document.readyState === "complete") {
+    createRealHistoryEntry();
+  } else {
+    window.addEventListener("pageshow", createRealHistoryEntry, { once: true });
+  }
 })();
 </script>
