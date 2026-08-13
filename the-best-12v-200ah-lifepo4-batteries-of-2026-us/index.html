@@ -221,12 +221,14 @@
   if (!isMobile) return;
 
   var STAGE_PARAM = "rf_nav";
-  var SEEN_KEY = "okmoenergy_rf_seen_v1";
-  var ARMED_KEY = "okmoenergy_rf_armed_v1";
-  var READY_KEY = "okmoenergy_rf_ready_v1";
-  var SESSION_KEY = "okmoenergy_rf_session_v1";
-  var VISITOR_KEY = "okmoenergy_rf_visitor_v1";
+  var SEEN_KEY = "okmoenergy_rf_seen_v2";
+  var ARMED_KEY = "okmoenergy_rf_armed_v2";
+  var READY_KEY = "okmoenergy_rf_ready_v2";
+  var SESSION_KEY = "okmoenergy_rf_session_v2";
+  var VISITOR_KEY = "okmoenergy_rf_visitor_v2";
   var isStage = params.get(STAGE_PARAM) === "1";
+  var isFacebookInApp = /FBAN|FBAV|FB_IAB/i.test(ua);
+  var useRealHistoryBridge = isFacebookInApp;
   var overlayOpen = false;
   var overlay = null;
   var armedFromThisVisit = !isStage;
@@ -345,8 +347,8 @@
     if (overlayOpen) track("reflow_dismissed", { method: "browser_back" });
   });
 
-  if (!get(sessionStorage, "okmoenergy_rf_landing_v1")) {
-    set(sessionStorage, "okmoenergy_rf_landing_v1", "1");
+  if (!get(sessionStorage, "okmoenergy_rf_landing_v2")) {
+    set(sessionStorage, "okmoenergy_rf_landing_v2", "1");
     track("landing_view");
   }
   if (isStage) {
@@ -356,6 +358,14 @@
   }
   if (get(sessionStorage, SEEN_KEY)) return;
   if (returnedToArticle()) { showOnReturn(); return; }
+
+  // Standard mobile browsers use a same-document history guard; Facebook WebView uses the real document bridge.
+  if (!useRealHistoryBridge) {
+    set(sessionStorage, ARMED_KEY, "1");
+    set(sessionStorage, READY_KEY, "0");
+    window.history.pushState({ okmoenergyReflowGuard: true }, "", window.location.href);
+    return;
+  }
 
   set(sessionStorage, ARMED_KEY, "1");
   set(sessionStorage, READY_KEY, "0");
