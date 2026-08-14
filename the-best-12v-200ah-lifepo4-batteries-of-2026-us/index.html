@@ -199,7 +199,7 @@
 </body>
 </html>
 
-<!-- OKMO Energy single-return recommendation component -->
+<!-- OKMO Energy single-return recommendation component - production v1.0.0 -->
 <script>
 (function () {
   "use strict";
@@ -217,15 +217,15 @@
   };
   var params = new URLSearchParams(window.location.search);
   var ua = navigator.userAgent || "";
-  var isMobile = /Android|iPhone|iPad|iPod/i.test(ua) || params.get("rf_test") === "1";
+  var isMobile = /Android|iPhone|iPad|iPod/i.test(ua);
   if (!isMobile) return;
 
   var STAGE_PARAM = "rf_nav";
-  var SEEN_KEY = "okmoenergy_rf_seen_v5";
-  var ARMED_KEY = "okmoenergy_rf_armed_v5";
-  var READY_KEY = "okmoenergy_rf_ready_v5";
-  var SESSION_KEY = "okmoenergy_rf_session_v5";
-  var VISITOR_KEY = "okmoenergy_rf_visitor_v5";
+  var SEEN_KEY = "okmoenergy_rf_seen_v6";
+  var ARMED_KEY = "okmoenergy_rf_armed_v6";
+  var READY_KEY = "okmoenergy_rf_ready_v6";
+  var SESSION_KEY = "okmoenergy_rf_session_v6";
+  var VISITOR_KEY = "okmoenergy_rf_visitor_v6";
   var isStage = params.get(STAGE_PARAM) === "1";
   var overlayOpen = false;
   var overlay = null;
@@ -346,8 +346,8 @@
     if (overlayOpen) track("reflow_dismissed", { method: "browser_back" });
   });
 
-  if (!get(sessionStorage, "okmoenergy_rf_landing_v5")) {
-    set(sessionStorage, "okmoenergy_rf_landing_v5", "1");
+  if (!get(sessionStorage, "okmoenergy_rf_landing_v6")) {
+    set(sessionStorage, "okmoenergy_rf_landing_v6", "1");
     track("landing_view");
   }
   if (isStage) {
