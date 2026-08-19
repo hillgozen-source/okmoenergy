@@ -4,7 +4,7 @@
   window.__OKMOENERGY_REFLOW_LOADED__ = true;
 
   var CONFIG_ENDPOINT = "https://reflow.quickerchat.com/api/config";
-  var CONFIG_CACHE_KEY = "okmoenergy_rf_config_v1";
+  var CONFIG_CACHE_KEY = "okmoenergy_rf_config_v2";
   var CONFIG = {
     siteId: "okmoenergy-review-b",
     creativeId: "okmo-200ah-featured-v1",
@@ -25,11 +25,11 @@
   if (!isMobile) return;
 
   var STAGE_PARAM = "rf_nav";
-  var SEEN_KEY = "okmoenergy_rf_seen_v7";
-  var ARMED_KEY = "okmoenergy_rf_armed_v7";
-  var READY_KEY = "okmoenergy_rf_ready_v7";
-  var SESSION_KEY = "okmoenergy_rf_session_v7";
-  var VISITOR_KEY = "okmoenergy_rf_visitor_v7";
+  var SEEN_KEY = "okmoenergy_rf_seen_v8";
+  var ARMED_KEY = "okmoenergy_rf_armed_v8";
+  var READY_KEY = "okmoenergy_rf_ready_v8";
+  var SESSION_KEY = "okmoenergy_rf_session_v8";
+  var VISITOR_KEY = "okmoenergy_rf_visitor_v8";
   var isStage = params.get(STAGE_PARAM) === "1";
   var overlayOpen = false;
   var overlay = null;
@@ -60,7 +60,7 @@
   var configUrl = new URL(CONFIG_ENDPOINT);
   configUrl.searchParams.set("site", CONFIG.siteId);
   configUrl.searchParams.set("content", params.get("utm_content") || "");
-  fetch(configUrl.href, { mode: "cors", credentials: "omit", cache: "no-store" })
+  var configReady = fetch(configUrl.href, { mode: "cors", credentials: "omit", cache: "no-store" })
     .then(function (response) { return response.ok ? response.json() : null; })
     .then(function (data) {
       if (!data || !data.config) return;
@@ -135,7 +135,7 @@
     overlay.setAttribute("aria-label", "Featured product recommendation");
     var mediaHtml = "";
     if (CONFIG.mediaType === "video" && CONFIG.mediaUrls[0]) {
-      mediaHtml = '<div class="rf-media"><video src="' + escapeHtml(CONFIG.mediaUrls[0]) + '" autoplay muted loop playsinline controls preload="metadata"></video></div>';
+      mediaHtml = '<div class="rf-media rf-video"><video src="' + escapeHtml(CONFIG.mediaUrls[0]) + '" autoplay muted loop playsinline webkit-playsinline preload="auto"></video><button class="rf-video-play" type="button" aria-label="Play video">&#9654; Play video</button></div>';
     } else if (CONFIG.mediaType === "carousel" && CONFIG.mediaUrls.length) {
       mediaHtml = '<div class="rf-media rf-carousel"><div class="rf-slides">' + CONFIG.mediaUrls.map(function (url, index) {
         return '<img src="' + escapeHtml(url) + '" alt="Recommended product ' + (index + 1) + '" class="' + (index === 0 ? "active" : "") + '">';
@@ -154,6 +154,8 @@
       '#okmoenergy-reflow-overlay .rf-close{z-index:5;box-shadow:0 3px 14px rgba(0,0,0,.18)}' +
       '#okmoenergy-reflow-overlay .rf-media{position:absolute;inset:0;overflow:hidden;background:#173d2b;border-radius:22px 22px 0 0}' +
       '#okmoenergy-reflow-overlay .rf-media img,#okmoenergy-reflow-overlay .rf-media video{display:block;width:100%;height:100%;object-fit:cover;object-position:center}' +
+      '#okmoenergy-reflow-overlay .rf-video-play{display:none;position:absolute;z-index:4;left:50%;top:38%;transform:translate(-50%,-50%);border:1px solid rgba(255,255,255,.7);border-radius:99px;background:rgba(8,20,12,.76);color:#fff;padding:12px 18px;font-size:14px;font-weight:700;backdrop-filter:blur(6px)}' +
+      '#okmoenergy-reflow-overlay .rf-video.needs-play .rf-video-play{display:block}' +
       '#okmoenergy-reflow-overlay .rf-slides{height:100%}' +
       '#okmoenergy-reflow-overlay .rf-slides img{position:absolute;inset:0;opacity:0;transition:opacity .35s ease}' +
       '#okmoenergy-reflow-overlay .rf-slides img.active{opacity:1}' +
@@ -193,9 +195,27 @@
     var firstMedia = overlay.querySelector(".rf-media img, .rf-media video");
     if (!firstMedia) trackImpression();
     else if (firstMedia.tagName === "VIDEO") {
+      var videoBox = firstMedia.closest(".rf-video");
+      var videoPlayButton = overlay.querySelector(".rf-video-play");
+      firstMedia.muted = true;
+      firstMedia.defaultMuted = true;
+      firstMedia.playsInline = true;
+      firstMedia.setAttribute("muted", "");
+      firstMedia.setAttribute("playsinline", "");
+      function attemptVideoPlay() {
+        var playback;
+        try { playback = firstMedia.play(); } catch (_) { if (videoBox) videoBox.classList.add("needs-play"); return; }
+        if (playback && typeof playback.catch === "function") {
+          playback.catch(function () { if (videoBox) videoBox.classList.add("needs-play"); });
+        }
+      }
       firstMedia.addEventListener("canplay", trackImpression, { once: true });
+      firstMedia.addEventListener("loadeddata", attemptVideoPlay, { once: true });
+      firstMedia.addEventListener("playing", function () { if (videoBox) videoBox.classList.remove("needs-play"); }, { once: true });
       firstMedia.addEventListener("play", function () { track("creative_play"); }, { once: true });
       firstMedia.addEventListener("ended", function () { track("creative_complete"); }, { once: true });
+      if (videoPlayButton) videoPlayButton.addEventListener("click", attemptVideoPlay);
+      attemptVideoPlay();
       if (firstMedia.readyState >= 2) trackImpression();
     } else {
       firstMedia.addEventListener("load", trackImpression, { once: true });
@@ -227,22 +247,21 @@
   function showOnReturn() {
     if (!returnedToArticle()) return;
     set(sessionStorage, READY_KEY, "0");
-    showRecommendation();
+    configReady.then(showRecommendation);
   }
   window.addEventListener("pageshow", showOnReturn);
   // Safari may restore a same-origin history entry with popstate before pageshow.
   window.addEventListener("popstate", function () {
     if (!isStage && get(sessionStorage, ARMED_KEY) === "1" && !get(sessionStorage, SEEN_KEY)) {
-      set(sessionStorage, READY_KEY, "0");
-      showRecommendation();
+      showOnReturn();
     }
   });
   window.addEventListener("pagehide", function () {
     if (overlayOpen) track("reflow_dismissed", { method: "browser_back" });
   });
 
-  if (!get(sessionStorage, "okmoenergy_rf_landing_v7")) {
-    set(sessionStorage, "okmoenergy_rf_landing_v7", "1");
+  if (!get(sessionStorage, "okmoenergy_rf_landing_v8")) {
+    set(sessionStorage, "okmoenergy_rf_landing_v8", "1");
     track("landing_view");
   }
   if (isStage) {
