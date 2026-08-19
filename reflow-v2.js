@@ -10,7 +10,7 @@
     creativeId: "okmo-200ah-featured-v1",
     brand: "OKMO",
     offer: "Featured recommendation",
-    headline: "Before you go",
+    headline: "Tap to view today's offer",
     description: "Explore the featured OKMO 12V 200Ah LiFePO4 battery on the official store.",
     ctaText: "View OKMOTech official store",
     ctaUrl: "https://okmotech.com/products/okmo-12v-200ah-mini-lifepo4-battery-for-rv-solar-marine-off-grid-power",
@@ -145,13 +145,18 @@
     } else if (CONFIG.mediaUrls[0]) {
       mediaHtml = '<div class="rf-media"><img src="' + escapeHtml(CONFIG.mediaUrls[0]) + '" alt="Featured OKMO product recommendation"></div>';
     }
+    var actionUrl = destinationUrl();
+    var actionLabel = CONFIG.headline || "Tap to view today's offer";
+    var isVideoCreative = CONFIG.mediaType === "video";
+    var mediaActionHtml = isVideoCreative
+      ? '<a class="rf-offer-line" href="' + actionUrl + '">' + escapeHtml(actionLabel) + ' <span>&rarr;</span></a>'
+      : '<a class="rf-media-link" href="' + actionUrl + '" aria-label="' + escapeHtml(actionLabel) + '"></a><span class="rf-offer-line">' + escapeHtml(actionLabel) + ' <span>&rarr;</span></span>';
     overlay.innerHTML =
       '<style>' +
       '#okmoenergy-reflow-overlay{position:fixed;z-index:2147483647;inset:0;display:flex;align-items:flex-end;background:rgba(10,17,13,.62);font-family:Arial,sans-serif}' +
       '#okmoenergy-reflow-overlay *{box-sizing:border-box}' +
       '#okmoenergy-reflow-overlay .rf-panel{position:relative;width:100%;height:78svh;max-height:720px;overflow:hidden;background:#173d2b;border-radius:22px 22px 0 0;box-shadow:0 -12px 35px rgba(0,0,0,.28)}' +
-      '#okmoenergy-reflow-overlay .rf-close{position:absolute;right:18px;top:18px;width:38px;height:38px;border:0;border-radius:50%;background:#eef1ed;color:#3d4a42;font:28px/34px Arial;cursor:pointer}' +
-      '#okmoenergy-reflow-overlay .rf-close{z-index:5;box-shadow:0 3px 14px rgba(0,0,0,.18)}' +
+      '#okmoenergy-reflow-overlay .rf-close{position:absolute;z-index:6;right:16px;top:16px;width:40px;height:40px;border:0;border-radius:50%;background:rgba(255,255,255,.9);color:#33443a;font:27px/36px Arial;cursor:pointer;box-shadow:0 3px 14px rgba(0,0,0,.18)}' +
       '#okmoenergy-reflow-overlay .rf-media{position:absolute;inset:0;overflow:hidden;background:#173d2b;border-radius:22px 22px 0 0}' +
       '#okmoenergy-reflow-overlay .rf-media img,#okmoenergy-reflow-overlay .rf-media video{display:block;width:100%;height:100%;object-fit:cover;object-position:center}' +
       '#okmoenergy-reflow-overlay .rf-video-play{display:none;position:absolute;z-index:4;left:50%;top:38%;transform:translate(-50%,-50%);border:1px solid rgba(255,255,255,.7);border-radius:99px;background:rgba(8,20,12,.76);color:#fff;padding:12px 18px;font-size:14px;font-weight:700;backdrop-filter:blur(6px)}' +
@@ -159,30 +164,22 @@
       '#okmoenergy-reflow-overlay .rf-slides{height:100%}' +
       '#okmoenergy-reflow-overlay .rf-slides img{position:absolute;inset:0;opacity:0;transition:opacity .35s ease}' +
       '#okmoenergy-reflow-overlay .rf-slides img.active{opacity:1}' +
-      '#okmoenergy-reflow-overlay .rf-dots{position:absolute;z-index:2;left:0;right:0;top:46%;display:flex;justify-content:center;gap:6px}' +
+      '#okmoenergy-reflow-overlay .rf-dots{position:absolute;z-index:3;left:0;right:0;top:46%;display:flex;justify-content:center;gap:6px;pointer-events:none}' +
       '#okmoenergy-reflow-overlay .rf-dots i{width:7px;height:7px;border-radius:99px;background:rgba(255,255,255,.58)}' +
       '#okmoenergy-reflow-overlay .rf-dots i.active{width:20px;background:#fff}' +
-      '#okmoenergy-reflow-overlay .rf-veil{position:absolute;z-index:1;inset:0;background:linear-gradient(180deg,rgba(5,12,8,.02) 8%,rgba(5,12,8,.12) 38%,rgba(5,12,8,.88) 72%,rgba(5,12,8,.98) 100%)}' +
-      '#okmoenergy-reflow-overlay .rf-content{position:absolute;z-index:3;left:0;right:0;bottom:0;padding:24px 22px max(20px,env(safe-area-inset-bottom));text-align:center}' +
-      '#okmoenergy-reflow-overlay .rf-label{display:inline-block;color:#173d2b;background:#d9ff57;border-radius:99px;padding:8px 12px;font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;margin:0 0 12px}' +
-      '#okmoenergy-reflow-overlay h2{margin:0;color:#fff;font-size:28px;line-height:1.12;letter-spacing:0;text-shadow:0 2px 14px rgba(0,0,0,.3)}' +
-      '#okmoenergy-reflow-overlay p{margin:10px auto 18px;max-width:430px;color:rgba(255,255,255,.86);font-size:14px;line-height:1.5}' +
-      '#okmoenergy-reflow-overlay .rf-cta{display:block;width:100%;border:0;border-radius:10px;background:#d9ff57;color:#173d2b;padding:16px;text-align:center;text-decoration:none;font-size:16px;font-weight:800}' +
-      '#okmoenergy-reflow-overlay .rf-continue,#okmoenergy-reflow-overlay .rf-return{display:block;width:100%;border:0;background:transparent;color:rgba(255,255,255,.88);padding:13px 8px 0;font-size:14px;text-decoration:underline;cursor:pointer}' +
-      '#okmoenergy-reflow-overlay .rf-return{color:rgba(255,255,255,.68);padding-top:10px;font-size:13px}' +
+      '#okmoenergy-reflow-overlay .rf-veil{position:absolute;z-index:1;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(5,12,8,.01) 35%,rgba(5,12,8,.08) 56%,rgba(5,12,8,.72) 100%)}' +
+      '#okmoenergy-reflow-overlay .rf-media-link{position:absolute;z-index:2;inset:0;display:block;cursor:pointer}' +
+      '#okmoenergy-reflow-overlay .rf-offer-line{position:absolute;z-index:4;left:22px;right:22px;bottom:calc(58px + env(safe-area-inset-bottom));display:block;border-radius:13px;background:#d9ff57;color:#173d2b;padding:16px 14px;text-align:center;text-decoration:none;font-size:17px;font-weight:850;line-height:1.25;box-shadow:0 10px 26px rgba(0,0,0,.24)}' +
+      '#okmoenergy-reflow-overlay span.rf-offer-line{pointer-events:none}' +
+      '#okmoenergy-reflow-overlay .rf-offer-line span{margin-left:5px}' +
+      '#okmoenergy-reflow-overlay .rf-return{position:absolute;z-index:5;left:22px;right:22px;bottom:max(16px,env(safe-area-inset-bottom));display:block;width:calc(100% - 44px);border:0;background:transparent;color:rgba(255,255,255,.74);padding:8px;font-size:13px;text-align:center;text-decoration:underline;cursor:pointer}' +
       '</style>' +
       '<div class="rf-panel">' +
       '<button class="rf-close" type="button" aria-label="Continue reading">&times;</button>' +
       mediaHtml +
       '<div class="rf-veil"></div>' +
-      '<div class="rf-content">' +
-      '<span class="rf-label">' + escapeHtml(CONFIG.brand + " · " + CONFIG.offer) + '</span>' +
-      '<h2>' + escapeHtml(CONFIG.headline) + '</h2>' +
-      '<p>' + escapeHtml(CONFIG.description) + '</p>' +
-      '<a class="rf-cta" href="' + destinationUrl() + '">' + escapeHtml(CONFIG.ctaText) + '</a>' +
-      '<button class="rf-continue" type="button">Continue reading</button>' +
+      mediaActionHtml +
       '<button class="rf-return" type="button">Return to previous page</button>' +
-      '</div>' +
       '</div>';
     document.body.appendChild(overlay);
     document.documentElement.style.overflow = "hidden";
@@ -235,9 +232,11 @@
         dots[slideIndex].classList.add("active");
       }, 3500);
     }
-    overlay.querySelector(".rf-cta").addEventListener("click", function () { track("reflow_cta_click", { destination: CONFIG.ctaUrl }); });
+    var materialAction = overlay.querySelector(".rf-media-link");
+    var offerAction = overlay.querySelector("a.rf-offer-line");
+    if (materialAction) materialAction.addEventListener("click", function () { track("reflow_cta_click", { destination: CONFIG.ctaUrl, clickArea: "material" }); });
+    if (offerAction) offerAction.addEventListener("click", function () { track("reflow_cta_click", { destination: CONFIG.ctaUrl, clickArea: "offer_line" }); });
     overlay.querySelector(".rf-close").addEventListener("click", function () { track("reflow_dismissed", { method: "close" }); removeOverlay(); });
-    overlay.querySelector(".rf-continue").addEventListener("click", function () { track("reflow_dismissed", { method: "continue_reading" }); removeOverlay(); });
     overlay.querySelector(".rf-return").addEventListener("click", function () { exitToPreviousPage("return_button"); });
   }
 
