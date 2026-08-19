@@ -24,6 +24,16 @@
       showHeadline: false,
       showShop: false,
       showReturn: false,
+      headlineColor: "#FFFFFF",
+      headlineFontSize: 32,
+      headlineFontFamily: "sans",
+      shopBackgroundColor: "#FFFFFF",
+      shopTextColor: "#15221B",
+      shopFontSize: 15,
+      shopFontFamily: "sans",
+      returnColor: "#FFFFFF",
+      returnFontSize: 12,
+      returnFontFamily: "sans",
       headlineX: 50,
       headlineY: 72,
       shopX: 27,
@@ -53,6 +63,15 @@
     var number = Number(value);
     return Number.isFinite(number) ? Math.min(maximum, Math.max(minimum, number)) : fallback;
   }
+  function safeColor(value, fallback) {
+    return /^#[0-9a-f]{6}$/i.test(String(value)) ? String(value).toUpperCase() : fallback;
+  }
+  function safeFont(value) {
+    return /^(sans|serif|mono)$/.test(String(value)) ? String(value) : "sans";
+  }
+  function fontStack(value) {
+    return value === "serif" ? "Georgia, 'Times New Roman', serif" : value === "mono" ? "'Courier New', monospace" : "Arial, Helvetica, sans-serif";
+  }
   function applyLayout(value) {
     var row = value && typeof value === "object" ? value : {};
     CONFIG.layout = {
@@ -63,6 +82,16 @@
       showHeadline: row.showHeadline === true,
       showShop: row.showShop === true,
       showReturn: row.showReturn === true,
+      headlineColor: safeColor(row.headlineColor, "#FFFFFF"),
+      headlineFontSize: clampNumber(row.headlineFontSize, 18, 64, 32),
+      headlineFontFamily: safeFont(row.headlineFontFamily),
+      shopBackgroundColor: safeColor(row.shopBackgroundColor, "#FFFFFF"),
+      shopTextColor: safeColor(row.shopTextColor, "#15221B"),
+      shopFontSize: clampNumber(row.shopFontSize, 12, 30, 15),
+      shopFontFamily: safeFont(row.shopFontFamily),
+      returnColor: safeColor(row.returnColor, "#FFFFFF"),
+      returnFontSize: clampNumber(row.returnFontSize, 10, 22, 12),
+      returnFontFamily: safeFont(row.returnFontFamily),
       headlineX: clampNumber(row.headlineX, 10, 90, 50),
       headlineY: clampNumber(row.headlineY, 8, 92, 72),
       shopX: clampNumber(row.shopX, 8, 92, 27),
@@ -197,7 +226,10 @@
       '%;--rf-scale:' + (CONFIG.layout.imageScale / 100) +
       ';--rf-headline-x:' + CONFIG.layout.headlineX + '%;--rf-headline-y:' + CONFIG.layout.headlineY +
       '%;--rf-shop-x:' + CONFIG.layout.shopX + '%;--rf-shop-y:' + CONFIG.layout.shopY +
-      '%;--rf-return-x:' + CONFIG.layout.returnX + '%;--rf-return-y:' + CONFIG.layout.returnY + '%';
+      '%;--rf-return-x:' + CONFIG.layout.returnX + '%;--rf-return-y:' + CONFIG.layout.returnY +
+      '%;--rf-headline-color:' + CONFIG.layout.headlineColor + ';--rf-headline-size:' + CONFIG.layout.headlineFontSize + 'px;--rf-headline-font:' + fontStack(CONFIG.layout.headlineFontFamily) +
+      ';--rf-shop-bg:' + CONFIG.layout.shopBackgroundColor + ';--rf-shop-color:' + CONFIG.layout.shopTextColor + ';--rf-shop-size:' + CONFIG.layout.shopFontSize + 'px;--rf-shop-font:' + fontStack(CONFIG.layout.shopFontFamily) +
+      ';--rf-return-color:' + CONFIG.layout.returnColor + ';--rf-return-size:' + CONFIG.layout.returnFontSize + 'px;--rf-return-font:' + fontStack(CONFIG.layout.returnFontFamily);
     overlay.innerHTML =
       '<style>' +
       '#okmoenergy-reflow-overlay{position:fixed;z-index:2147483647;inset:0;display:block;background:#173d2b;font-family:Arial,sans-serif}' +
@@ -217,9 +249,9 @@
       '#okmoenergy-reflow-overlay .rf-dots i.active{width:20px;background:#fff}' +
       '#okmoenergy-reflow-overlay .rf-veil{position:absolute;z-index:2;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(5,12,8,.03) 25%,rgba(5,12,8,.14) 54%,rgba(5,12,8,.84) 100%)}' +
       '#okmoenergy-reflow-overlay .rf-media-link{position:absolute;z-index:3;inset:0;display:block;cursor:pointer}' +
-      '#okmoenergy-reflow-overlay .rf-marketing-copy{position:absolute;z-index:5;left:var(--rf-headline-x);top:var(--rf-headline-y);width:min(84vw,520px);transform:translate(-50%,-50%);display:block;color:#fff;font-size:clamp(28px,8vw,42px);font-weight:800;line-height:1.08;letter-spacing:-.025em;text-align:left;text-shadow:0 2px 16px rgba(0,0,0,.42);pointer-events:none}' +
-      '#okmoenergy-reflow-overlay .rf-shop-button{position:absolute;z-index:6;left:var(--rf-shop-x);top:var(--rf-shop-y);transform:translate(-50%,-50%);display:block;min-width:124px;border-radius:5px;background:#fff;color:#15221b;padding:14px 23px;text-align:center;text-decoration:none;font-size:15px;font-weight:800;line-height:1.1;box-shadow:0 8px 24px rgba(0,0,0,.2)}' +
-      '#okmoenergy-reflow-overlay .rf-return{position:absolute;z-index:7;left:var(--rf-return-x);top:var(--rf-return-y);transform:translate(-50%,-50%);display:block;width:max-content;max-width:84vw;border:0;background:transparent;color:rgba(255,255,255,.72);padding:8px;font-size:12px;text-align:center;text-decoration:underline;cursor:pointer}' +
+      '#okmoenergy-reflow-overlay .rf-marketing-copy{position:absolute;z-index:5;left:var(--rf-headline-x);top:var(--rf-headline-y);width:min(84vw,520px);transform:translate(-50%,-50%);display:block;color:var(--rf-headline-color);font-family:var(--rf-headline-font);font-size:var(--rf-headline-size);font-weight:800;line-height:1.08;letter-spacing:-.025em;text-align:left;text-shadow:0 2px 16px rgba(0,0,0,.42);pointer-events:none}' +
+      '#okmoenergy-reflow-overlay .rf-shop-button{position:absolute;z-index:6;left:var(--rf-shop-x);top:var(--rf-shop-y);transform:translate(-50%,-50%);display:block;min-width:124px;border-radius:5px;background:var(--rf-shop-bg);color:var(--rf-shop-color);font-family:var(--rf-shop-font);padding:14px 23px;text-align:center;text-decoration:none;font-size:var(--rf-shop-size);font-weight:800;line-height:1.1;box-shadow:0 8px 24px rgba(0,0,0,.2)}' +
+      '#okmoenergy-reflow-overlay .rf-return{position:absolute;z-index:7;left:var(--rf-return-x);top:var(--rf-return-y);transform:translate(-50%,-50%);display:block;width:max-content;max-width:84vw;border:0;background:transparent;color:var(--rf-return-color);font-family:var(--rf-return-font);padding:8px;font-size:var(--rf-return-size);text-align:center;text-decoration:underline;cursor:pointer}' +
       '</style>' +
       '<div class="rf-panel" style="' + panelStyle + '">' +
       '<button class="rf-close" type="button" aria-label="Continue reading">&times;</button>' +
