@@ -152,8 +152,9 @@
       '#okmoenergy-reflow-overlay .rf-panel{position:relative;width:100%;max-height:94svh;overflow:auto;background:#fff;border-radius:18px 18px 0 0;padding:0 22px max(22px,env(safe-area-inset-bottom));box-shadow:0 -12px 35px rgba(0,0,0,.22)}' +
       '#okmoenergy-reflow-overlay .rf-close{position:absolute;right:18px;top:18px;width:38px;height:38px;border:0;border-radius:50%;background:#eef1ed;color:#3d4a42;font:28px/34px Arial;cursor:pointer}' +
       '#okmoenergy-reflow-overlay .rf-close{z-index:5;box-shadow:0 3px 14px rgba(0,0,0,.18)}' +
-      '#okmoenergy-reflow-overlay .rf-media{height:min(43svh,430px);margin:0 -22px 20px;position:relative;overflow:hidden;background:#15221b;border-radius:18px 18px 0 0}' +
-      '#okmoenergy-reflow-overlay .rf-media img,#okmoenergy-reflow-overlay .rf-media video{display:block;width:100%;height:100%;object-fit:cover}' +
+      '#okmoenergy-reflow-overlay .rf-media{height:min(43svh,430px);margin:0 -22px 20px;position:relative;overflow:hidden;background:#eef4ec;border-radius:18px 18px 0 0}' +
+      '#okmoenergy-reflow-overlay .rf-media.rf-natural{height:auto;min-height:112px;max-height:43svh}' +
+      '#okmoenergy-reflow-overlay .rf-media img,#okmoenergy-reflow-overlay .rf-media video{display:block;width:100%;height:100%;object-fit:contain}' +
       '#okmoenergy-reflow-overlay .rf-slides{height:100%}' +
       '#okmoenergy-reflow-overlay .rf-slides img{position:absolute;inset:0;opacity:0;transition:opacity .35s ease}' +
       '#okmoenergy-reflow-overlay .rf-slides img.active{opacity:1}' +
@@ -186,16 +187,27 @@
       track("reflow_impression", { mediaType: CONFIG.mediaType });
     }
     var firstMedia = overlay.querySelector(".rf-media img, .rf-media video");
+    function fitMedia(media) {
+      if (!media) return;
+      var width = media.tagName === "VIDEO" ? media.videoWidth : media.naturalWidth;
+      var height = media.tagName === "VIDEO" ? media.videoHeight : media.naturalHeight;
+      var container = media.closest(".rf-media");
+      if (!container || !width || !height) return;
+      container.classList.add("rf-natural");
+      container.style.aspectRatio = width + " / " + height;
+    }
     if (!firstMedia) trackImpression();
     else if (firstMedia.tagName === "VIDEO") {
-      firstMedia.addEventListener("canplay", trackImpression, { once: true });
+      firstMedia.addEventListener("loadedmetadata", function () { fitMedia(firstMedia); }, { once: true });
+      firstMedia.addEventListener("canplay", function () { fitMedia(firstMedia); trackImpression(); }, { once: true });
       firstMedia.addEventListener("play", function () { track("creative_play"); }, { once: true });
       firstMedia.addEventListener("ended", function () { track("creative_complete"); }, { once: true });
+      if (firstMedia.readyState >= 1) fitMedia(firstMedia);
       if (firstMedia.readyState >= 2) trackImpression();
     } else {
-      firstMedia.addEventListener("load", trackImpression, { once: true });
+      firstMedia.addEventListener("load", function () { fitMedia(firstMedia); trackImpression(); }, { once: true });
       firstMedia.addEventListener("error", trackImpression, { once: true });
-      if (firstMedia.complete && firstMedia.naturalWidth > 0) trackImpression();
+      if (firstMedia.complete && firstMedia.naturalWidth > 0) { fitMedia(firstMedia); trackImpression(); }
     }
     if (CONFIG.mediaType === "carousel" && CONFIG.mediaUrls.length > 1) {
       var slideIndex = 0;
