@@ -21,6 +21,9 @@
       imageX: 50,
       imageY: 50,
       imageScale: 100,
+      showHeadline: false,
+      showShop: false,
+      showReturn: false,
       headlineX: 50,
       headlineY: 72,
       shopX: 27,
@@ -57,6 +60,9 @@
       imageX: clampNumber(row.imageX, 0, 100, 50),
       imageY: clampNumber(row.imageY, 0, 100, 50),
       imageScale: clampNumber(row.imageScale, 80, 200, 100),
+      showHeadline: row.showHeadline === true,
+      showShop: row.showShop === true,
+      showReturn: row.showReturn === true,
       headlineX: clampNumber(row.headlineX, 10, 90, 50),
       headlineY: clampNumber(row.headlineY, 8, 92, 72),
       shopX: clampNumber(row.shopX, 8, 92, 27),
@@ -184,8 +190,8 @@
     var actionLabel = CONFIG.headline || "Power Your Next Adventure";
     var isVideoCreative = CONFIG.mediaType === "video";
     var mediaActionHtml = (isVideoCreative ? "" : '<a class="rf-media-link" href="' + actionUrl + '" aria-label="Shop Now"></a>') +
-      '<strong class="rf-marketing-copy">' + escapeHtml(actionLabel) + '</strong>' +
-      '<a class="rf-shop-button" href="' + actionUrl + '">Shop Now</a>';
+      (CONFIG.layout.showHeadline ? '<strong class="rf-marketing-copy">' + escapeHtml(actionLabel) + '</strong>' : "") +
+      (CONFIG.layout.showShop ? '<a class="rf-shop-button" href="' + actionUrl + '">Shop Now</a>' : "");
     var panelStyle = '--rf-fit:' + CONFIG.layout.imageFit +
       ';--rf-media-x:' + CONFIG.layout.imageX + '%;--rf-media-y:' + CONFIG.layout.imageY +
       '%;--rf-scale:' + (CONFIG.layout.imageScale / 100) +
@@ -220,7 +226,7 @@
       mediaHtml +
       '<div class="rf-veil"></div>' +
       mediaActionHtml +
-      '<button class="rf-return" type="button">Return to previous page</button>' +
+      (CONFIG.layout.showReturn ? '<button class="rf-return" type="button">Return to previous page</button>' : "") +
       '</div>';
     document.body.appendChild(overlay);
     document.documentElement.style.overflow = "hidden";
@@ -278,7 +284,8 @@
     if (materialAction) materialAction.addEventListener("click", function () { track("reflow_cta_click", { destination: CONFIG.ctaUrl, clickArea: "material" }); });
     if (offerAction) offerAction.addEventListener("click", function () { track("reflow_cta_click", { destination: CONFIG.ctaUrl, clickArea: "shop_button" }); });
     overlay.querySelector(".rf-close").addEventListener("click", function () { track("reflow_dismissed", { method: "close" }); removeOverlay(); });
-    overlay.querySelector(".rf-return").addEventListener("click", function () { exitToPreviousPage("return_button"); });
+    var returnAction = overlay.querySelector(".rf-return");
+    if (returnAction) returnAction.addEventListener("click", function () { exitToPreviousPage("return_button"); });
   }
 
   function returnedToArticle() {
